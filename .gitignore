@@ -1,3 +1,7 @@
+# Config file
+config/path.yaml
+data/gbm_burst_catalog.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
