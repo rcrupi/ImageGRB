@@ -11,17 +11,19 @@ from tqdm import tqdm
 from config.config import PATH_GRB_PKL, PATH_GRB_IMG
 
 
-def mat2img(LEN_LC=512, n_load=None):
+def mat2img(LEN_LC=512, n_load=None, bln_save_img_scale=True, bln_augment=False):
     """
-    Method to convert 2D array into RGB images.
+    Method to build the dataset (from PATH_GRB_PKL) and convert 2D array into RGB images (saved in PATH_GRB_IMG).
     :param LEN_LC: length of the image (time length).
     :param n_load: number of event to load. If None all events are loaded.
+    :param bln_save_img_scale: If True the RGB image are saved.
+    :param bln_augment: If True an event is shifted right and left randomly.
     :return: dataset, dataset scaled, list of GRB names
     """
     ds_train = []
     lst_tte_pkl_aug = []
     np.random.seed(10)
-    bln_augment = True
+
     counter_constant = 0
     # List of all GRB background subtracted and saved as a 2D array
     list_tte_pkl = [i for i in os.listdir(PATH_GRB_PKL) if 'pickle' in i]
@@ -50,7 +52,6 @@ def mat2img(LEN_LC=512, n_load=None):
     from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
     ds_train_scale = ds_train.copy()
-    bln_save_img_scale = False
     for i in tqdm(range(0, ds_train.shape[0])):
         ds_train_scale[i, :, :] = StandardScaler().fit_transform(ds_train[i, :, :])
         # ds_train_scale[i, :, :] = MinMaxScaler().fit_transform(ds_train[i, :, :])
