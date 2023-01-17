@@ -1,6 +1,10 @@
 # ImageGRB
 Convert a GRB event in a pretty image.
 
+![WhatsApp Image 2023-01-10 at 11 35 32](https://user-images.githubusercontent.com/93478548/212856721-b035eacf-05f3-4812-ad16-137c3986d700.jpeg)
+
+(GRB110920)
+
 ## Installation
 Create a new venv, install the library specified in the requirements.txt and finally install GBM data tools
 
