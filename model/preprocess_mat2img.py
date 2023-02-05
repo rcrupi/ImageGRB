@@ -3,6 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.image
+import matplotlib.cm
 # from PIL import Image
 import pandas as pd
 import pickle
@@ -11,13 +12,69 @@ from tqdm import tqdm
 from config.config import PATH_GRB_PKL, PATH_GRB_IMG
 
 
-def mat2img(LEN_LC=512, n_load=None, bln_save_img_scale=True, bln_augment=False):
+def LineStdScaler(img, **kwargs):
+    """
+    Method to scale the image line by line according to fluctuations outside the GRB.
+    :param by_window: select the scale algorithm. When True find minimum STD in time windows.
+    :param window: number of samples in the time window (window algorithm).
+    :param min_std: minimum meaningful standard deviation (window algorithm).
+    :param min_drops: threshold on dropped samples (GRB removal algorithm).
+    :param clip: if True clip values below the estimated baseline mean.
+    :return: scaled image.
+    """
+    by_window = kwargs.get('by_window', True)
+    window = kwargs.get('window', 32)
+    min_std = kwargs.get('min_std', 0.1)
+    min_drops = kwargs.get('min_drops', 5)
+    clip = kwargs.get('clip', False)
+    s = img.shape
+    n = s[0]//window
+    w = n*window
+    drops = lambda n: int(round(np.sqrt(n))) if min_drops is None else min_drops
+    # Loop on the image lines
+    for i in range(s[1]):
+        data = img[:, i]
+        # Calculate the standard deviation outside the GRB
+        if by_window:   # window with smallest meaningful standard deviation
+            std = data[:w].reshape((n, window)).std(axis=1, ddof=1)
+            std[std < min_std] = max(1., std.max())
+            scale = std.min()
+        else:           # loop removing the GRB
+            n_old = 2*s[0]
+            n = s[0]
+            mask = np.ones_like(data, dtype=bool)
+            while n > 16 and n_old-n > drops(n_old):
+                std = data[mask].std(ddof=1)
+                mean = data[mask].mean()
+                thr = mean+3.0*std
+                mask = data < thr
+                n_old, n = n, mask.sum()
+            scale = std
+        # Scale the image line by its standard deviation
+        data /= scale
+        # Find the baseline (assuming a constant residual background)
+        thr = data.min()+6.0
+        mean = data[data < thr].mean()
+        # Remove the baseline
+        data -= mean
+    if clip:
+        return np.clip(img, 0, None)
+    else:
+        return img
+
+
+def mat2img(LEN_LC=512, n_load=None, bln_save_img_scale=True, bln_augment=False, scaler='Standard', cmap='Greys_r', min_amp=5.0, norm=False, **kwargs):
     """
     Method to build the dataset (from PATH_GRB_PKL) and convert 2D array into RGB images (saved in PATH_GRB_IMG).
     :param LEN_LC: length of the image (time length).
     :param n_load: number of event to load. If None all events are loaded.
     :param bln_save_img_scale: If True the RGB image are saved.
     :param bln_augment: If True an event is shifted right and left randomly.
+    :param scaler: scaler function to use ('MinMax', 'Standard', 'LineStd').
+    :param cmap: color map.
+    :param min_amp: minimum amplitude for image normalization.
+    :param norm: boolean uset do activate normalization by to_rgba().
+    :param kwargs: dictionary with parameters for LineStdScaler() or other user defined scalers.
     :return: dataset, dataset scaled, list of GRB names
     """
     ds_train = []
@@ -48,20 +105,30 @@ def mat2img(LEN_LC=512, n_load=None, bln_save_img_scale=True, bln_augment=False)
     ds_train = np.array(ds_train)
     print("Event that are constant: ", counter_constant)
 
+    # mapper from 2d array to rgba image
+    sm = matplotlib.cm.ScalarMappable(cmap)
+
     # Scale dataset
     from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
     ds_train_scale = ds_train.copy()
     for i in tqdm(range(0, ds_train.shape[0])):
-        ds_train_scale[i, :, :] = StandardScaler().fit_transform(ds_train[i, :, :])
-        # ds_train_scale[i, :, :] = MinMaxScaler().fit_transform(ds_train[i, :, :])
-        if abs(ds_train_scale[i, :, :].max() - ds_train_scale[i, :, :].min()) > 10 ** -6:
-            ds_train_scale[i, :, :] = (ds_train_scale[i, :, :] - ds_train_scale[i, :, :].min()) / \
-                                      (ds_train_scale[i, :, :].max() - ds_train_scale[i, :, :].min())
+        if scaler == 'MinMax':
+            ds_train_scale[i, :, :] = MinMaxScaler().fit_transform(ds_train[i, :, :])
+        elif scaler == 'Standard':
+            ds_train_scale[i, :, :] = StandardScaler().fit_transform(ds_train[i, :, :])
+        else:
+            ds_train_scale[i, :, :] = LineStdScaler(ds_train_scale[i, :, :], **kwargs)
+        ds_train_max = ds_train_scale[i, :, :].max()
+        ds_train_min = ds_train_scale[i, :, :].min()
+        if abs(ds_train_max - ds_train_min) > 10 ** -6:
+            ds_train_scale[i, :, :] = (ds_train_scale[i, :, :] - ds_train_min) / \
+                                      (max(min_amp, ds_train_max) - ds_train_min)
             if bln_save_img_scale:
+                rgba = sm.to_rgba(ds_train_scale[i, :, :].T, bytes=True, norm=norm)
                 path_tmp = PATH_GRB_IMG + lst_tte_pkl_aug[i].replace('.', '') + '.png'
                 path_tmp = path_tmp.replace(" ", "_")
-                matplotlib.image.imsave(path_tmp, ds_train_scale[i, :, :].T, format='png')
+                matplotlib.image.imsave(path_tmp, rgba, format='png')
                 # # Convert matrix to image matrix
                 # from PIL import Image
                 # aaa = Image.fromarray(ds_train_scale[i, :, :].T, "RGB")

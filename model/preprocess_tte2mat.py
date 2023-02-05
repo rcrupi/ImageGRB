@@ -21,16 +21,12 @@ def det_triggered(str_mask):
     :param str_mask: 12 mask binary values one per each detector. E.g. 101000010000.
     :return: list of triggered detectors
     """
-    list_det = np.array(['n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7',
-                         'n8', 'n9', 'na', 'nb'])
-    try:
-        idx_det = np.where(np.array([int(i) for i in list(str_mask)]) == 1)
-        # Do not consider BGO detectors
-        idx_det = np.array([idx_tmp for idx_tmp in idx_det[0] if idx_tmp < 12])
-        return list(list_det[idx_det])
-    except:
-        print("Warning, not found detectors triggered. det_mask: ", str_mask)
-        return list(list_det)
+    list_det = ['n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7',
+                'n8', 'n9', 'na', 'nb']
+    str_det = str(int(str_mask))
+    mask_len = len(str_det)
+    trig_det = [list_det[i] for i in range(mask_len) if i < 12 and str_det[-(i+1)] == '1']
+    return trig_det
 
 
 def tte2mat(LEN_LC=512, TIME_RES=0.064, bln_run=True):
