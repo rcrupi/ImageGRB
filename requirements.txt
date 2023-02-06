@@ -19,6 +19,6 @@ pandas==1.5.3
 scipy==1.10.0
 scikit-learn==1.0.2
 auto-sklearn==0.15.0
-tqdm==4.61.1
-pytorch==1.21.1
+tqdm==4.64.1
+pytorch==1.12.1
 tpot==0.11.7
