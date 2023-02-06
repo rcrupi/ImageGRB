@@ -1,11 +1,24 @@
-#gbm-data-tools==1.1.1 # to be installed manually
-matplotlib==3.2.1
-seaborn==0.11.1
-numpy==1.19.5
-pandas==1.1.5
-scipy==1.5.4
-scikit_learn==0.24.2
-requests[security]==2.25.1
-pyopenssl==20.0.1
-#sqlalchemy==1.4.18
-tqdm==4.60.0
+# Python 3.6
+##gbm-data-tools==1.1.1 # to be installed manually
+#matplotlib==3.2.1
+#seaborn==0.11.1
+#numpy==1.19.5
+#pandas==1.1.5
+#scipy==1.5.4
+#scikit_learn==0.24.2
+#requests[security]==2.25.1
+#pyopenssl==20.0.1
+##sqlalchemy==1.4.18
+#tqdm==4.60.0
+
+# Python 3.9
+matplotlib==3.6.3
+seaborn==0.11.2
+numpy==1.24.1
+pandas==1.5.3
+scipy==1.10.0
+scikit-learn==1.0.2
+auto-sklearn==0.15.0
+tqdm==4.61.1
+pytorch==1.21.1
+tpot==0.11.7
