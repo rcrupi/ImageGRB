@@ -78,15 +78,19 @@ col_list = ['t90', 't90_error', 't50', 't50_error',
  'pflx_band_alpha', 'flnc_band_alpha']
 
 df_tot_z.loc[:, col_list] = df_tot_z.loc[:, col_list].fillna(-1)
+from sklearn.preprocessing import StandardScaler, QuantileTransformer
+scaler = QuantileTransformer()
 add_train = np.array([df_tot_z.loc[df_tot_z['name'].str.slice(3) == i[2:11], col_list].values[0] for i in lst_train])
+add_train = scaler.fit_transform(add_train)
 add_test = np.array([df_tot_z.loc[df_tot_z['name'].str.slice(3) == i[2:11], col_list].values[0] for i in lst_test])
+add_test = scaler.transform(add_test)
 add_val = np.array([df_tot_z.loc[df_tot_z['name'].str.slice(3) == i[2:11], col_list].values[0] for i in lst_val])
+add_val = scaler.transform(add_val)
 
 # mapper from 2d array to rgba image
 sm = matplotlib.cm.ScalarMappable(cmap)
 
 # Scale dataset
-from sklearn.preprocessing import StandardScaler
 
 ds_train_scale = ds_train.copy()
 for i in tqdm(range(0, ds_train.shape[0])):
@@ -155,7 +159,7 @@ model.compile(optimizer=opt,
               loss=tf.keras.losses.MSE,
               metrics=['mse'])
 
-history = model.fit([ds_train_scale, add_train], y_train, epochs=8,
+history = model.fit([ds_train_scale, add_train], y_train, epochs=4,
                     validation_data=([ds_val_scale, add_val], y_val), batch_size=16)
 
 plt.plot(history.history['mse'], label='mse')
@@ -168,11 +172,12 @@ test_loss, test_acc = model.evaluate([ds_test_scale, add_test], y_test, verbose=
 print(test_acc)
 
 fig = plt.figure(figsize=(10, 10))
-plt.scatter(y_train, model.predict(ds_train_scale), label='train')
-plt.scatter(y_test, model.predict(ds_test_scale), label='test')
+plt.scatter(y_train, model.predict([ds_train_scale, add_train]), label='train')
+plt.scatter(y_test, model.predict([ds_test_scale, add_test]), label='test')
 plt.plot([0,8],[0,8])
 plt.xlabel("true")
 plt.ylabel("predicted")
 plt.legend()
 plt.show()
 
+pass

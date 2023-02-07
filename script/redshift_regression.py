@@ -15,12 +15,12 @@ import autosklearn.regression
 import matplotlib.pyplot as plt
 from tpot import TPOTRegressor
 
-col_list = ['t90', 't90_error', 't50', 't50_error',
- 'flux_64', 'flux_64_error', 'fluence', 'fluence_error',
- 'pflx_band_phtfluxb', 'flnc_band_ampl', 'pflx_band_epeak', 'flnc_band_phtfluxb',
- 'pflx_band_ergflux', 'flnc_band_phtflux', 'pflx_band_beta', 'flnc_band_ergflux',
- 'pflx_band_phtflux', 'flnc_band_beta', 'flnc_band_epeak', 'pflx_band_ampl',
- 'pflx_band_alpha', 'flnc_band_alpha']
+# col_list = ['t90', 't90_error', 't50', 't50_error',
+#  'flux_64', 'flux_64_error', 'fluence', 'fluence_error',
+#  'pflx_band_phtfluxb', 'flnc_band_ampl', 'pflx_band_epeak', 'flnc_band_phtfluxb',
+#  'pflx_band_ergflux', 'flnc_band_phtflux', 'pflx_band_beta', 'flnc_band_ergflux',
+#  'pflx_band_phtflux', 'flnc_band_beta', 'flnc_band_epeak', 'pflx_band_ampl',
+#  'pflx_band_alpha', 'flnc_band_alpha']
 col_list = list(df_tot_z.columns[df_tot_z.dtypes == 'float64']) + ['dec_y']
 col_list = [i for i in col_list if i != 'z']
 X = df_tot_z[col_list].copy()
