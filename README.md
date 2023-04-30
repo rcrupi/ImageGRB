@@ -5,6 +5,19 @@ Convert a GRB event in a pretty image.
 
 (GRB110920)
 
+You can cite this work as:
+```
+@software{Crupi_ImageGRB_2023,
+author = {Crupi, Riccardo},
+doi = {10.5281/zenodo.7880873},
+month = feb,
+title = {{ImageGRB}},
+url = {https://github.com/rcrupi/ImageGRB},
+version = {1.0.0},
+year = {2023}
+}
+```
+
 ## Installation
 Create a new venv, install the library specified in the requirements.txt and finally install GBM data tools
 
